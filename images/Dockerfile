@@ -1,9 +1,9 @@
 # Source: https://github.com/dotnet/dotnet-docker
 FROM mcr.microsoft.com/dotnet/runtime-deps:6.0-jammy as build
 
-ARG TARGETOS
-ARG TARGETARCH
-ARG RUNNER_VERSION
+ARG TARGETOS=linux
+ARG TARGETARCH=arm64
+ARG RUNNER_VERSION=1.0.0
 ARG RUNNER_CONTAINER_HOOKS_VERSION=0.5.0
 ARG DOCKER_VERSION=24.0.6
 ARG BUILDX_VERSION=0.11.2
@@ -48,10 +48,22 @@ RUN apt-get update -y \
     jq \
     git \
     lsb-release \
+    build-essential \
+    ca-certificates \
+    gnome-terminal \
+    unzip \
+    zip \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -o- -L https://yarnpkg.com/install.sh | bash \
+# Install yarn
+RUN (curl -o- -L https://yarnpkg.com/install.sh | bash) || true \
     && export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+RUN mkdir -p /tmp/aws \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/aws/awscliv2.zip" \
+    && unzip /tmp/aws/awscliv2.zip -d /tmp/aws \
+    && sudo /tmp/aws/aws/install
 
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
@@ -59,6 +71,14 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && usermod -aG docker runner \
     && echo "%sudo   ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers \
     && echo "Defaults env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers
+
+# Install docker
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && chmod a+r /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update -y \
+    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 WORKDIR /home/runner
 
