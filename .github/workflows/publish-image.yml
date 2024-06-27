@@ -19,6 +19,10 @@ jobs:
       packages: write
 
     steps:
+      - name: Lowercase the IMAGE_NAME
+        run: |
+          echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -63,8 +67,9 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             RUNNER_VERSION=${{ steps.image.outputs.version }}
+            RUNNER_REPO=${{ github.repository_owner }}
           push: true
           labels: |
-            org.opencontainers.image.source=${{github.server_url}}/${{github.repository}}
-            org.opencontainers.image.description=https://github.com/actions/runner/releases/tag/v${{ steps.image.outputs.version }}
+            org.opencontainers.image.title=GitHub Actions Runner
+            org.opencontainers.image.description=https://github.com/${{ github.repository_owner }}/runner/releases/tag/v${{ steps.image.outputs.version }}
             org.opencontainers.image.licenses=MIT
