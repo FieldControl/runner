@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <EmbeddedResource Include="action_yaml.json">
       <LogicalName>GitHub.Runner.Worker.action_yaml.json</LogicalName>
     </EmbeddedResource>
