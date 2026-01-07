@@ -29,6 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
         <EmbeddedResource Include="DTPipelines\workflow-v1.0.json">
             <LogicalName>GitHub.DistributedTask.Pipelines.ObjectTemplating.workflow-v1.0.json</LogicalName>
         </EmbeddedResource>
